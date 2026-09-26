@@ -45,7 +45,7 @@
 .boardDuty[style*="#DFF3FF"] .boardName{color:#174c6b!important}
 
 /* AI baby-purple highlight readability */
-.boardDuty[style*="#FFF3B0"] .boardName{color:#665500!important}
+.boardDuty[style*="#EEE5FF"] .boardName{color:#563a7a!important}
 
 /* Chinese light-brown highlight readability */
 .boardDuty[style*="#EADBC8"] .boardName{color:#684b36!important}
@@ -188,7 +188,7 @@ function reportSlots(reportCycle){
    return s.cycles.length===1&&s.cycles[0]===reportCycle
  }).sort((a,b)=>days.indexOf(a.day)-days.indexOf(b.day)||dutyOrder(a)-dutyOrder(b)||a.place.localeCompare(b.place)||a.id.localeCompare(b.id))
 }
-const subjectColors={'AI':['#FFF3B0','AI'],'Arabic':['#DFF3FF','AR'],'Art':['#FFEAF2','ART'],'Business':['#B71C1C','BUS'],'Chinese':['#EADBC8','CH'],'Drama':['#FFEAF2','DR'],'English':['#C62828','ENG'],'Islamic':['#2E7D32','ISL'],'Mathematics':['#FFD600','MATH'],'Music':['#FFEAF2','MUS'],'Physical Education':['#FFEAF2','PE'],'Science':['#1565C0','SCI'],'Social Studies':['#CDEFCF','SS']};
+const subjectColors={'AI':['#EEE5FF','AI'],'Arabic':['#DFF3FF','AR'],'Art':['#FFEAF2','ART'],'Business':['#B71C1C','BUS'],'Chinese':['#EADBC8','CH'],'Drama':['#FFEAF2','DR'],'English':['#C62828','ENG'],'Islamic':['#2E7D32','ISL'],'Mathematics':['#FFD600','MATH'],'Music':['#FFEAF2','MUS'],'Physical Education':['#FFEAF2','PE'],'Science':['#1565C0','SCI'],'Social Studies':['#CDEFCF','SS']};
 function cellTime(label,day,reportCycle){if(label==='Morning')return '7:30–8:05';if(label==='Break')return reportCycle==='C2'?(day==='Friday'?'9:40–10:00':'9:50–10:10'):(day==='Friday'?'10:25–10:45':'10:40–11:00');return day==='Friday'?'11:25–12:00':'Bus 3:00–last bus  ·  Car 3:00–3:30'}
 function makeReport(reportCycle){const report=el('section','printReport weeklyBoard'),header=el('div','printHeader'),left=el('div');left.append(el('small','','AL REYADA SCHOOL  ·  TERM 1  ·  WEEK 5'),el('h2','',reportCycle+' · Weekly Duty Calendar'));header.append(left,el('small','','Monday – Friday  ·  '+(reportCycle==='C2'?'Grades 5–8':'Grades 9–12')));report.append(header);
  const owner=new Map();for(const [name,ids] of Object.entries(assignment))for(const id of ids)owner.set(id,name);
