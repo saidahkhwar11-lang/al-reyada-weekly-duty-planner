@@ -193,14 +193,37 @@ function makeReport(reportCycle){const report=el('section','printReport weeklyBo
   grid.append(col)}
  report.append(grid);
  const legend=el('div','subjectLegend');for(const dep of [...new Set(data.map(slot=>teachers.find(t=>t.teacher===owner.get(slot.id))?.department).filter(Boolean))].sort()){const item=el('span','legendItem'),swatch=el('i','legendSwatch');swatch.style.background=subjectColors[dep]?.[0]||'#8495a0';item.append(swatch,document.createTextNode(dep));legend.append(item)}report.append(legend);return report}
-function makeDepartmentReport(dep){const report=el('section','printReport departmentReport'),header=el('div','printHeader'),left=el('div');left.append(el('small','','AL REYADA SCHOOL  ·  TERM 1  ·  WEEK 5'),el('h2','',dep+' · Weekly Duty Sheet'));header.append(left,el('small','','Department Coordinator Copy  ·  Monday – Friday'));report.append(header);
- const deptTeachers=teachers.filter(t=>t.department===dep),names=new Set(deptTeachers.map(t=>t.teacher)),rows=[];
- for(const t of deptTeachers){for(const id of assignment[t.teacher]||[]){const s=slotById.get(id);if(s)rows.push({teacher:t.teacher,slot:s})}}
- rows.sort((a,b)=>days.indexOf(a.slot.day)-days.indexOf(b.slot.day)||dutyOrder(a.slot)-dutyOrder(b.slot)||a.teacher.localeCompare(b.teacher));
- const table=el('table','deptDutyTable'),thead=el('thead'),hr=el('tr');['Day','Time / Duty','Teacher','Duty Location'].forEach(x=>hr.append(el('th','',x)));thead.append(hr);table.append(thead);const body=el('tbody');
- for(const day of days){const dayRows=rows.filter(r=>r.slot.day===day);if(!dayRows.length){const r=el('tr');r.append(el('td','deptDay',day),el('td','','—'),el('td','','No department duty'),el('td','','—'));body.append(r);continue}
- dayRows.forEach((x,n)=>{const r=el('tr');if(n===0){const d=el('td','deptDay',day);d.rowSpan=dayRows.length;r.append(d)}const type=x.slot.type==='Morning'?'Morning':x.slot.type.includes('break')?'Break':'Dismissal';const time=dutyTime(x.slot);const tdType=el('td','deptType',type+' · '+time),tdName=el('td','deptTeacher',x.teacher),tdPlace=el('td','deptPlace',x.slot.place+(x.slot.type.toLowerCase().includes('dismissal')?' · '+(x.slot.type==='Bus dismissal'?'Bus':'Car'):''));const col=subjectColors[dep]?.[0]||'#445B70';tdName.style.borderLeft='6px solid '+col;r.append(tdType,tdName,tdPlace);body.append(r)})}
- table.append(body);report.append(table,el('div','deptSummary',deptTeachers.length+' teachers · '+rows.length+' assigned duties this week'));return report}
+function makeDepartmentReport(dep){
+ const report=el('section','printReport weeklyBoard departmentCalendar'),header=el('div','printHeader'),left=el('div');
+ left.append(el('small','','AL REYADA SCHOOL  ·  TERM 1  ·  WEEK 5'),el('h2','',dep+' · Weekly Duty Calendar'));
+ header.append(left,el('small','','Department Coordinator Copy  ·  Monday – Friday'));report.append(header);
+ const deptTeachers=teachers.filter(t=>t.department===dep),names=new Set(deptTeachers.map(t=>t.teacher)),owner=new Map();
+ for(const [name,ids] of Object.entries(assignment))for(const id of ids)owner.set(id,name);
+ const rows=[];for(const t of deptTeachers)for(const id of assignment[t.teacher]||[]){const s=slotById.get(id);if(s)rows.push({teacher:t.teacher,slot:s})}
+ report.append(el('div','reportStats',deptTeachers.length+' teachers  ·  '+rows.length+' assigned duties this week'));
+ const grid=el('div','weekGrid');
+ for(const day of days){
+  const col=el('section','dayColumn');col.append(el('h3','dayHead',day));
+  const groups=[
+   ['Morning','7:30–8:05',s=>s.type==='Morning'],
+   ['Break','C2 / C3 break',s=>s.type.includes('break')],
+   ['Dismissal',day==='Friday'?'11:25–12:00':'3:00–3:30',s=>s.type.toLowerCase().includes('dismissal')]
+  ];
+  for(const [label,time,test] of groups){
+   const sec=el('div','dutySection'),sh=el('div','dutySectionHead');sh.append(el('b','',label),el('span','',time));sec.append(sh);
+   const items=rows.filter(r=>r.slot.day===day&&test(r.slot)).sort((x,y)=>dutyOrder(x.slot)-dutyOrder(y.slot)||x.teacher.localeCompare(y.teacher));
+   if(!items.length)sec.append(el('div','boardEmpty','—'));
+   for(const x of items){
+    const item=el('div','boardDuty');const accent=subjectColors[dep]?.[0]||'#8495a0';item.style.setProperty('--subject-accent',accent);
+    const top=el('div','boardTop'),nm=el('strong','boardName',x.teacher);top.append(nm);item.append(top);
+    item.append(el('div','boardPlace',x.slot.place+(x.slot.type.toLowerCase().includes('dismissal')?' · '+(x.slot.type==='Bus dismissal'?'Bus':'Car'):'')));sec.append(item);
+   }
+   col.append(sec);
+  }
+  grid.append(col);
+ }
+ report.append(grid);return report
+}
 function printAllDepartmentReports(){const deps=[...new Set(teachers.map(t=>t.department))].sort(),box=$('printArea'),tools=el('div','printTools'),print=el('button','button primary','Print / Save All Department Sheets'),close=el('button','button','Close');print.type=close.type='button';print.onclick=()=>window.print();close.onclick=()=>{box.classList.remove('preview');box.setAttribute('aria-hidden','true');box.replaceChildren()};tools.append(el('span','',deps.length+' department sheets — each department starts on a separate PDF page. In the print dialog choose Save as PDF.'),print,close);box.replaceChildren(tools,...deps.map(makeDepartmentReport));box.classList.add('preview');box.setAttribute('aria-hidden','false');box.scrollIntoView({behavior:'smooth',block:'start'})}
 function printReports(){const requested=$('reportChoice').value,kinds=requested==='both'?['C2','C3']:[requested],box=$('printArea'),tools=el('div','printTools'),print=el('button','button primary','Print / Save '+(requested==='both'?'both cycles':requested)+' PDF'),close=el('button','button','Close calendar');print.type=close.type='button';print.onclick=()=>window.print();close.onclick=()=>{box.classList.remove('preview');box.setAttribute('aria-hidden','true');box.replaceChildren()};tools.append(el('span','','One row per day: morning, break and dismissal. Select C2 or C3 above to save each as its own PDF.'),print,close);box.replaceChildren(tools,...kinds.map(makeReport));box.classList.add('preview');box.setAttribute('aria-hidden','false');box.scrollIntoView({behavior:'smooth',block:'start'})}
 $('printBtn').onclick=printReports;
