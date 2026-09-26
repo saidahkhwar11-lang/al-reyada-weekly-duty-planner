@@ -55,6 +55,28 @@
 
 /* Social Studies pale-mint highlight readability */
 .boardDuty[style*="#E6F4EA"] .boardName{color:#355b45!important}
+
+/* Force each weekly duty PDF onto one A3 landscape page */
+@media print{
+  @page{size:A3 landscape;margin:3mm}
+  .weeklyBoard{width:100%!important;height:auto!important;max-height:284mm!important;overflow:hidden!important}
+  .weeklyBoard .weekGrid{gap:2px!important}
+  .weeklyBoard .dayHead{font-size:8px!important;padding:2px!important}
+  .weeklyBoard .dutySection{padding:1px!important}
+  .weeklyBoard .dutySectionHead{padding:1px 2px!important;margin:-1px -1px 1px!important;font-size:6px!important;line-height:1.05!important}
+  .weeklyBoard .dutySectionHead span{font-size:5.2px!important}
+  .weeklyBoard .boardDuty{padding:0 1px!important;margin:0!important;line-height:1.02!important;border-left-width:3px!important}
+  .weeklyBoard .boardName{font-size:5.4px!important;padding:1px 3px!important;line-height:1.05!important}
+  .weeklyBoard .boardPlace{font-size:4.55px!important;line-height:1.05!important;margin-top:0!important}
+  .weeklyBoard .boardAlert{font-size:4.4px!important}
+  .weeklyBoard .printHeader{padding-bottom:2px!important;margin-bottom:2px!important}
+  .weeklyBoard .printHeader h2{font-size:14px!important;margin:0!important}
+  .weeklyBoard .printHeader small{font-size:7px!important}
+  .weeklyBoard .reportStats{font-size:7px!important;margin:1px 0 2px!important}
+  .weeklyBoard .subjectLegend{margin:2px 0 0!important;gap:1px 6px!important}
+  .weeklyBoard .legendItem{font-size:5.5px!important}
+  .weeklyBoard .legendSwatch{width:7px!important;height:7px!important}
+}
 </style>
 </head>
 <body>
