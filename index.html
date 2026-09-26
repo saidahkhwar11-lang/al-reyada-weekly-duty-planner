@@ -206,8 +206,8 @@ function makeDepartmentReport(dep){
   const col=el('section','dayColumn');col.append(el('h3','dayHead',day));
   const groups=[
    ['Morning','7:30–8:05',s=>s.type==='Morning'],
-   ['Break','C2 / C3 break',s=>s.type.includes('break')],
-   ['Dismissal',day==='Friday'?'11:25–12:00':'3:00–3:30',s=>s.type.toLowerCase().includes('dismissal')]
+   ['Break','C2 + C3',s=>s.type.includes('break')],
+   ['Dismissal',day==='Friday'?'11:25–12:00 · C2 + C3':'3:00–3:30 · C2 + C3',s=>s.type.toLowerCase().includes('dismissal')]
   ];
   for(const [label,time,test] of groups){
    const sec=el('div','dutySection'),sh=el('div','dutySectionHead');sh.append(el('b','',label),el('span','',time));sec.append(sh);
@@ -216,7 +216,7 @@ function makeDepartmentReport(dep){
    for(const x of items){
     const item=el('div','boardDuty');const accent=subjectColors[dep]?.[0]||'#8495a0';item.style.setProperty('--subject-accent',accent);
     const top=el('div','boardTop'),nm=el('strong','boardName',x.teacher);top.append(nm);item.append(top);
-    item.append(el('div','boardPlace',x.slot.place+(x.slot.type.toLowerCase().includes('dismissal')?' · '+(x.slot.type==='Bus dismissal'?'Bus':'Car'):'')));sec.append(item);
+    const t=teachers.find(z=>z.teacher===x.teacher),cycleText=t?(t.cycles.length===2?'C2+C3':t.cycles.join('')):'';item.append(el('div','boardPlace',(cycleText?cycleText+' · ':'')+x.slot.place+(x.slot.type.toLowerCase().includes('dismissal')?' · '+(x.slot.type==='Bus dismissal'?'Bus':'Car'):'')));sec.append(item);
    }
    col.append(sec);
   }
