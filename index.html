@@ -100,6 +100,21 @@
   .weeklyBoard .legendItem{font-size:6.5px!important}
   .weeklyBoard .legendSwatch{width:9px!important;height:9px!important}
 }
+
+/* Keep each coordinator calendar and its subject legend together on one printed page */
+@media print{
+  .departmentCalendar{
+    break-before:page!important;
+    page-break-before:always!important;
+    break-after:page!important;
+    page-break-after:always!important;
+    break-inside:avoid!important;
+    page-break-inside:avoid!important;
+  }
+  .departmentCalendar:first-of-type{break-before:auto!important;page-break-before:auto!important}
+  .departmentCalendar .weekGrid{break-inside:avoid!important;page-break-inside:avoid!important}
+  .departmentCalendar .subjectLegend{break-before:avoid!important;page-break-before:avoid!important;break-inside:avoid!important;page-break-inside:avoid!important}
+}
 </style>
 </head>
 <body>
