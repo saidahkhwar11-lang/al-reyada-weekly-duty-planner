@@ -119,18 +119,31 @@ function offerFile(name,content,mime,title){showAction({title,message:'Your file
 function csv(rows){return '\ufeff'+rows.map(r=>r.map(v=>'"'+String(v??'').replaceAll('"','""')+'"').join(',')).join('\r\n')}
 function dutyTime(slot){if(slot.type==='Morning')return '7:30–8:05';if(slot.type==='C2 break')return slot.day==='Friday'?'9:40–10:00':'9:50–10:10';if(slot.type==='C3 break')return slot.day==='Friday'?'10:25–10:45':'10:40–11:00';if(slot.day==='Friday')return '11:25–12:00';return slot.type==='Bus dismissal'?'3:00–last bus':'3:00–3:30'}
 function dutyOrder(slot){return slot.type==='Morning'?0:slot.type==='C2 break'?1:slot.type==='C3 break'?2:3}
-function reportSlots(reportCycle){return slots.filter(s=>s.cycles.length===1&&s.cycles[0]===reportCycle).sort((a,b)=>days.indexOf(a.day)-days.indexOf(b.day)||dutyOrder(a)-dutyOrder(b)||a.place.localeCompare(b.place)||a.id.localeCompare(b.id))}
+function reportSlots(reportCycle){
+ return slots.filter(s=>{
+   if(s.type.toLowerCase().includes('dismissal')){
+     const t=teachers.find(x=>x.teacher===s.previous_teacher);
+     if(!t)return false;
+     return t.cycles.length===2?reportCycle==='C3':t.cycles.includes(reportCycle);
+   }
+   return s.cycles.length===1&&s.cycles[0]===reportCycle
+ }).sort((a,b)=>days.indexOf(a.day)-days.indexOf(b.day)||dutyOrder(a)-dutyOrder(b)||a.place.localeCompare(b.place)||a.id.localeCompare(b.id))
+}
 const subjectColors={'AI':['#EEE5FF','AI'],'Arabic':['#DFF3FF','AR'],'Art':['#FFEAF2','ART'],'Business':['#B71C1C','BUS'],'Chinese':['#EADBC8','CH'],'Drama':['#FFEAF2','DR'],'English':['#C62828','ENG'],'Islamic':['#2E7D32','ISL'],'Mathematics':['#FFD600','MATH'],'Music':['#FFEAF2','MUS'],'Physical Education':['#FFEAF2','PE'],'Science':['#1565C0','SCI'],'Social Studies':['#E6F4EA','SS']};
 function cellTime(label,day,reportCycle){if(label==='Morning')return '7:30–8:05';if(label==='Break')return reportCycle==='C2'?(day==='Friday'?'9:40–10:00':'9:50–10:10'):(day==='Friday'?'10:25–10:45':'10:40–11:00');return day==='Friday'?'11:25–12:00':'Bus 3:00–last bus  ·  Car 3:00–3:30'}
 function makeReport(reportCycle){const report=el('section','printReport weeklyBoard'),header=el('div','printHeader'),left=el('div');left.append(el('small','','AL REYADA SCHOOL  ·  TERM 1  ·  WEEK 5'),el('h2','',reportCycle+' · Weekly Duty Calendar'));header.append(left,el('small','','Monday – Friday  ·  '+(reportCycle==='C2'?'Grades 5–8':'Grades 9–12')));report.append(header);
  const owner=new Map();for(const [name,ids] of Object.entries(assignment))for(const id of ids)owner.set(id,name);
  const data=reportSlots(reportCycle),missing=data.filter(s=>!owner.has(s.id)).length;
  report.append(el('div','reportStats',data.length+' duty spots  ·  '+(data.length-missing)+' assigned  ·  '+missing+' unassigned'));
- const groups=[['Morning',s=>s.type==='Morning'],['Break',s=>s.type===reportCycle+' break'],['Dismissal',s=>s.type.toLowerCase().includes('dismissal')]];
+ const groups=[['Morning',s=>s.type==='Morning'],['Break',s=>s.type===reportCycle+' break'],['Dismissal',s=>s.type.toLowerCase().includes('dismissal')],['After School Admin',s=>false]];
  const grid=el('div','weekGrid');
  for(const day of days){const col=el('section','dayColumn'),dayHead=el('h3','dayHead',day);col.append(dayHead);
   for(const [label,includes] of groups){const sec=el('div','dutySection'),secHead=el('div','dutySectionHead');secHead.append(el('b','',label),el('span','',cellTime(label,day,reportCycle)));sec.append(secHead);
-   const items=data.filter(s=>s.day===day&&includes(s));
+   let items=data.filter(s=>s.day===day&&includes(s));
+   if(label==='After School Admin'){
+     const admin={Monday:'HANAN LAB',Tuesday:'FATIMA ALHOSANI',Wednesday:'HAYYAM',Thursday:'SALMA - SOCIAL WORKER',Friday:'SHAIKHA SOCIAL WORKER'};
+     const item=el('div','boardDuty adminDuty'),top=el('div','boardTop'),nm=el('strong','boardName',admin[day]);item.style.setProperty('--subject-accent','#D9E7F2');top.append(nm);item.append(top,el('div','boardPlace',day==='Friday'?'11:25–12:00 · Reception duty admin':'3:00–3:30 and until the last student has left · Reception duty admin'));sec.append(item);items=[];
+   }
    for(const slot of items){const name=owner.get(slot.id),teacher=name?teachers.find(t=>t.teacher===name):null,subject=teacher?.department,item=el('div','boardDuty'+(name?'':' vacant'));if(subject&&subjectColors[subject])item.style.setProperty('--subject-accent',subjectColors[subject][0]);const top=el('div','boardTop'),nm=el('strong','boardName',name||'Unassigned'),tag=el('span','boardTag',subject?subjectColors[subject]?.[1]||subject:'OPEN');if(subject&&subjectColors[subject]){tag.style.background=subjectColors[subject][0];tag.style.color=subject==='Mathematics'?'#183044':'#fff'}top.append(nm,tag);item.append(top,el('div','boardPlace',slot.place+(slot.type.toLowerCase().includes('dismissal')?' · '+(slot.type==='Bus dismissal'?'Bus':'Car'):'')));if(name&&currentOverlaps(name).some(pair=>pair.first.id===slot.id||pair.second.id===slot.id))item.append(el('div','boardAlert','⚠ Check overlap'));sec.append(item)}
    if(!items.length)sec.append(el('div','boardEmpty','—'));col.append(sec)}
   grid.append(col)}
