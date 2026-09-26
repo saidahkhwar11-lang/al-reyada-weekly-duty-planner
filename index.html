@@ -224,7 +224,32 @@ function makeDepartmentReport(dep){
  }
  report.append(grid);return report
 }
-function printAllDepartmentReports(){const deps=[...new Set(teachers.map(t=>t.department))].sort(),box=$('printArea'),tools=el('div','printTools'),print=el('button','button primary','Print / Save All Department Sheets'),close=el('button','button','Close');print.type=close.type='button';print.onclick=()=>window.print();close.onclick=()=>{box.classList.remove('preview');box.setAttribute('aria-hidden','true');box.replaceChildren()};tools.append(el('span','',deps.length+' department sheets — each department starts on a separate PDF page. In the print dialog choose Save as PDF.'),print,close);box.replaceChildren(tools,...deps.map(makeDepartmentReport));box.classList.add('preview');box.setAttribute('aria-hidden','false');box.scrollIntoView({behavior:'smooth',block:'start'})}
+function printAllDepartmentReports(){
+ const groups=[
+  {name:'AI',deps:['AI']},
+  {name:'Arabic',deps:['Arabic']},
+  {name:'English + Business Education',deps:['English','Business']},
+  {name:'Islamic',deps:['Islamic']},
+  {name:'Mathematics',deps:['Mathematics']},
+  {name:'Science',deps:['Science','Physics','Chemistry','Biology']},
+  {name:'Social Studies',deps:['Social Studies']},
+  {name:'Activities',deps:['Art','Drama','Music','Chinese','Physical Education']},
+  {name:'Health Science',deps:['Health Science']}
+ ].filter(g=>teachers.some(t=>g.deps.includes(t.department)));
+ const originalMake=makeDepartmentReport;
+ const reports=groups.map(g=>{
+  if(g.deps.length===1)return originalMake(g.deps[0]);
+  const report=el('section','printReport weeklyBoard departmentCalendar'),header=el('div','printHeader'),left=el('div');
+  left.append(el('small','','AL REYADA SCHOOL  ·  TERM 1  ·  WEEK 5'),el('h2','',g.name+' · Weekly Duty Calendar'));header.append(left,el('small','','Department Coordinator Copy  ·  C2 + C3  ·  Monday – Friday'));report.append(header);
+  const deptTeachers=teachers.filter(t=>g.deps.includes(t.department)),rows=[];for(const t of deptTeachers)for(const id of assignment[t.teacher]||[]){const s=slotById.get(id);if(s)rows.push({teacher:t.teacher,slot:s,department:t.department})}
+  report.append(el('div','reportStats',deptTeachers.length+' teachers  ·  '+rows.length+' assigned duties this week'));
+  const grid=el('div','weekGrid');
+  for(const day of days){const col=el('section','dayColumn');col.append(el('h3','dayHead',day));const gs=[['Morning','7:30–8:05',s=>s.type==='Morning'],['Break','C2 + C3',s=>s.type.includes('break')],['Dismissal',day==='Friday'?'11:25–12:00 · C2 + C3':'3:00–3:30 · C2 + C3',s=>s.type.toLowerCase().includes('dismissal')]];
+   for(const [label,time,test] of gs){const sec=el('div','dutySection'),sh=el('div','dutySectionHead');sh.append(el('b','',label),el('span','',time));sec.append(sh);const items=rows.filter(r=>r.slot.day===day&&test(r.slot)).sort((x,y)=>dutyOrder(x.slot)-dutyOrder(y.slot)||x.teacher.localeCompare(y.teacher));if(!items.length)sec.append(el('div','boardEmpty','—'));for(const x of items){const item=el('div','boardDuty'),accent=subjectColors[x.department]?.[0]||'#8495a0';item.style.setProperty('--subject-accent',accent);const top=el('div','boardTop'),nm=el('strong','boardName',x.teacher);top.append(nm);item.append(top);const t=teachers.find(z=>z.teacher===x.teacher),cycleText=t?(t.cycles.length===2?'C2+C3':t.cycles.join('')):'';item.append(el('div','boardPlace',(cycleText?cycleText+' · ':'')+x.slot.place+(x.slot.type.toLowerCase().includes('dismissal')?' · '+(x.slot.type==='Bus dismissal'?'Bus':'Car'):'')));sec.append(item)}col.append(sec)}grid.append(col)}
+  report.append(grid);return report
+ });
+ const box=$('printArea'),tools=el('div','printTools'),print=el('button','button primary','Print / Save All Department Sheets'),close=el('button','button','Close');print.type=close.type='button';print.onclick=()=>window.print();close.onclick=()=>{box.classList.remove('preview');box.setAttribute('aria-hidden','true');box.replaceChildren()};tools.append(el('span','',groups.length+' coordinator sheets — combined departments share one weekly calendar.'),print,close);box.replaceChildren(tools,...reports);box.classList.add('preview');box.setAttribute('aria-hidden','false');box.scrollIntoView({behavior:'smooth',block:'start'})
+}
 function printReports(){const requested=$('reportChoice').value,kinds=requested==='both'?['C2','C3']:[requested],box=$('printArea'),tools=el('div','printTools'),print=el('button','button primary','Print / Save '+(requested==='both'?'both cycles':requested)+' PDF'),close=el('button','button','Close calendar');print.type=close.type='button';print.onclick=()=>window.print();close.onclick=()=>{box.classList.remove('preview');box.setAttribute('aria-hidden','true');box.replaceChildren()};tools.append(el('span','','One row per day: morning, break and dismissal. Select C2 or C3 above to save each as its own PDF.'),print,close);box.replaceChildren(tools,...kinds.map(makeReport));box.classList.add('preview');box.setAttribute('aria-hidden','false');box.scrollIntoView({behavior:'smooth',block:'start'})}
 $('printBtn').onclick=printReports;
 function exportCSVs(){const first=cycle==='C2'?'p3':'p4';const rows=[['Department','Teacher','Grades taught','Classes per week','Number of duties',first.toUpperCase()+' class days','P8 class days','Duty details','Assigned duty IDs']];for(const base of teachers.filter(t=>effective(t).cycles.includes(cycle))){const t=effective(base),ids=assignment[t.teacher]||[];rows.push([t.department,t.teacher,t.grades.join(', '),t.classes,ids.length,dayFlags(t.teacher,first).join(', '),dayFlags(t.teacher,'p8').join(', '),ids.map(id=>formatDuty(slotById.get(id))).join('\n'),ids.join(', ')])}
