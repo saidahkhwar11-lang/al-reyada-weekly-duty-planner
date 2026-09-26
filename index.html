@@ -205,8 +205,13 @@ function reportSlots(reportCycle){
  const owner=new Map();for(const [name,ids] of Object.entries(assignment))for(const id of ids)owner.set(id,name);
  return slots.map(liveSlot).filter(s=>{
    const name=owner.get(s.id)||s.previous_teacher,t=teachers.find(x=>x.teacher===name);
-   if(s.type.toLowerCase().includes('dismissal'))return t?(t.cycles.length===2?reportCycle==='C3':t.cycles.includes(reportCycle)):false;
-   if(s.type==='Morning'&&s.cycles.length>1)return t?(t.cycles.length===2?reportCycle==='C3':t.cycles.includes(reportCycle)):false;
+   if(t&&t.cycles.length===2){
+     // Dual-cycle teachers default to C3 unless this duty is explicitly marked C2-only.
+     if(s.cycles.length===1&&s.cycles[0]==='C2')return reportCycle==='C2';
+     return reportCycle==='C3';
+   }
+   if(s.type.toLowerCase().includes('dismissal'))return t?t.cycles.includes(reportCycle):false;
+   if(s.type==='Morning'&&s.cycles.length>1)return t?t.cycles.includes(reportCycle):false;
    return s.cycles.length===1&&s.cycles[0]===reportCycle
  }).sort((a,b)=>days.indexOf(a.day)-days.indexOf(b.day)||dutyOrder(a)-dutyOrder(b)||a.place.localeCompare(b.place)||a.id.localeCompare(b.id))
 }
