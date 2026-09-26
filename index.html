@@ -77,6 +77,29 @@
   .weeklyBoard .legendItem{font-size:5.5px!important}
   .weeklyBoard .legendSwatch{width:7px!important;height:7px!important}
 }
+
+/* Balanced print layout: use the whole page instead of shrinking the calendar into the top-left */
+@media print{
+  @page{size:A4 landscape;margin:6mm}
+  .weeklyBoard{width:100%!important;max-height:none!important;overflow:visible!important}
+  .weeklyBoard .weekGrid{gap:5px!important;align-items:stretch!important}
+  .weeklyBoard .dayColumn{display:flex!important;flex-direction:column!important}
+  .weeklyBoard .dayHead{font-size:11px!important;padding:5px 3px!important}
+  .weeklyBoard .dutySection{padding:3px!important;flex:0 0 auto!important}
+  .weeklyBoard .dutySectionHead{padding:3px 4px!important;margin:-3px -3px 3px!important;font-size:7.5px!important;line-height:1.15!important}
+  .weeklyBoard .dutySectionHead span{font-size:6.4px!important}
+  .weeklyBoard .boardDuty{padding:2px 3px!important;margin:1px 0!important;line-height:1.12!important;border-left-width:4px!important}
+  .weeklyBoard .boardName{font-size:6.8px!important;padding:2px 5px!important;line-height:1.1!important}
+  .weeklyBoard .boardPlace{font-size:5.7px!important;line-height:1.15!important;margin-top:1px!important}
+  .weeklyBoard .boardAlert{font-size:5.5px!important}
+  .weeklyBoard .printHeader{padding-bottom:4px!important;margin-bottom:4px!important}
+  .weeklyBoard .printHeader h2{font-size:17px!important;margin:0!important}
+  .weeklyBoard .printHeader small{font-size:8px!important}
+  .weeklyBoard .reportStats{font-size:8px!important;margin:2px 0 4px!important}
+  .weeklyBoard .subjectLegend{margin:4px 0 0!important;gap:2px 9px!important}
+  .weeklyBoard .legendItem{font-size:6.5px!important}
+  .weeklyBoard .legendSwatch{width:9px!important;height:9px!important}
+}
 </style>
 </head>
 <body>
