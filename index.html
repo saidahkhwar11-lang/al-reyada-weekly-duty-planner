@@ -120,12 +120,11 @@ function csv(rows){return '\ufeff'+rows.map(r=>r.map(v=>'"'+String(v??'').replac
 function dutyTime(slot){if(slot.type==='Morning')return '7:30–8:05';if(slot.type==='C2 break')return slot.day==='Friday'?'9:40–10:00':'9:50–10:10';if(slot.type==='C3 break')return slot.day==='Friday'?'10:25–10:45':'10:40–11:00';if(slot.day==='Friday')return '11:25–12:00';return slot.type==='Bus dismissal'?'3:00–last bus':'3:00–3:30'}
 function dutyOrder(slot){return slot.type==='Morning'?0:slot.type==='C2 break'?1:slot.type==='C3 break'?2:3}
 function reportSlots(reportCycle){
+ const owner=new Map();for(const [name,ids] of Object.entries(assignment))for(const id of ids)owner.set(id,name);
  return slots.filter(s=>{
-   if(s.type.toLowerCase().includes('dismissal')){
-     const t=teachers.find(x=>x.teacher===s.previous_teacher);
-     if(!t)return false;
-     return t.cycles.length===2?reportCycle==='C3':t.cycles.includes(reportCycle);
-   }
+   const name=owner.get(s.id)||s.previous_teacher,t=teachers.find(x=>x.teacher===name);
+   if(s.type.toLowerCase().includes('dismissal'))return t?(t.cycles.length===2?reportCycle==='C3':t.cycles.includes(reportCycle)):false;
+   if(s.type==='Morning'&&s.cycles.length>1)return t?(t.cycles.length===2?reportCycle==='C3':t.cycles.includes(reportCycle)):false;
    return s.cycles.length===1&&s.cycles[0]===reportCycle
  }).sort((a,b)=>days.indexOf(a.day)-days.indexOf(b.day)||dutyOrder(a)-dutyOrder(b)||a.place.localeCompare(b.place)||a.id.localeCompare(b.id))
 }
